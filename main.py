@@ -3,25 +3,40 @@ import os
 import pprint
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 app  = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def _log(message):
     pprint.pprint(message)
 
-@app.get("/")
-def phones():
+@app.get("/phones")
+def phones(match: str = ""):
     res = []
-    cwd = os.getcwd()
-    dir_list = os.listdir(cwd+"/phones")
-    
-    _log(dir_list)
-    
-    for file_name in dir_list:
-        _log(file_name)
-        f = open("phones/"+file_name)
-        data = json.load(f)
-        res.append(data)
-    
+    phone_list = json.load(open(os.getcwd() + "/phones.json"))
+        
+    if match == "":
+        return  phone_list
+    print(match)
+    for phone in phone_list:
+        print(phone["name"].casefold())
+
+        if match.casefold() in phone["name"].casefold():            
+            res.append(phone)
     return res
+
+
+@app.get("/phones/{phone_id}")
+def phone(phone_id: str):
+    _log(phone_id)
+    return json.load(open(os.getcwd() + "/phones/" + phone_id + ".json"))
+    
 
